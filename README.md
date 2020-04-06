@@ -12,10 +12,6 @@ This project is taken from: [odionhandle](https://www.theodinproject.com/courses
 ### Setup
 - Clone this repository to your local machine or download the files. [clone](https://github.com/arslanbisharat/bubble-sort/tree/main-branch)
 
-### Usage
-  - Navigate to the project folder and run the main.rb file, using: ruby main.rb
-  - To run the methods created here, you must call them from main.rb or create a new file with its purpose.
-
 ## Authors
 
 👤 **Paul chinweokwu **
@@ -35,7 +31,7 @@ This project is taken from: [odionhandle](https://www.theodinproject.com/courses
 
 Contributions, issues and feature requests are welcome!
 
-Feel free to check the [issues page](https://github.com/arslanbisharat/bubble-sort/issues).
+Feel free to check the [issues page](https://github.com/arslanbisharat/Enumerable-project/issues).
 
 ## Show your support
 
