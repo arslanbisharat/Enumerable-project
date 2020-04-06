@@ -1,4 +1,4 @@
-# Copyright (c) Muhammasd Arslan
+ Copyright (c) Muhammasd Arslan
 # frozen_string_literal: true
 
 module Enumerable
