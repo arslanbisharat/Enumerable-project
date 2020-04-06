@@ -60,27 +60,27 @@ module Enumerable
     return counter
   end
   
-    def my_map(proc=nil)
-        newArr = []
-            if proc
-                self.length.times do |e|
-                newArr[e] = proc.call(self[e])
-                 end
-            else
-                self.length.times do |e|
-                newArr[e] = yield(self[e])
-                 end
-                end
-        puts newArr
-    end
-  
-    def my_inject(go = 0)
-        acum = go
+  def my_map(proc=nil)
+    newArr = []
+      if proc
         self.length.times do |e|
-            acum = yield(acum, self[e])
+        newArr[e] = proc.call(self[e])
+         end
+      else
+        self.length.times do |e|
+        newArr[e] = yield(self[e])
+         end
         end
-        return acum
+    puts newArr
+  end
+  
+  def my_inject(go = 0)
+    acum = go
+    self.length.times do |e|
+      acum = yield(acum, self[e])
     end
+    return acum
+  end
   
   def multiply_els
     self.my_inject(1) do |k, e|
