@@ -50,15 +50,15 @@ module Enumerable
     return true
   end
   
-    def my_count
-        counter = 0
-        self.length.times do |e|
-            if yield(self[e])
-                counter += 1
-            end
-        end
-        return counter
+  def my_count
+    counter = 0
+    self.length.times do |e|
+      if yield(self[e])
+        counter += 1
+      end
     end
+    return counter
+  end
   
     def my_map(proc=nil)
         newArr = []
