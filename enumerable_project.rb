@@ -59,7 +59,7 @@ module Enumerable
     if args.empty?
       return length unless block_given?
 
-       i = 0
+        i = 0
       my_each do |x|
         i += 1 if yield(x) == true
       end
@@ -100,7 +100,7 @@ def multiply_els(arr)
   mult
 end
 
-puts "multiply_els([1, 2, 3])"
+puts 'multiply_els([1, 2, 3])'
 
 # ****************************************************************
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TESTS<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
