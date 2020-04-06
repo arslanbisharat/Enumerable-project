@@ -1,4 +1,4 @@
-Copyright (c) 2020 Muhmmad Arslan
+# Copyright (c) 2020 Muhmmad Arslan
 
 module Enumerable
   def my_each
