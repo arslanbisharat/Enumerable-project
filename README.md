@@ -1,9 +1,9 @@
-# bubble-sort
+Enumerable- project
 This project is taken from: [odionhandle](https://www.theodinproject.com/courses/ruby-programming/lessons/advanced-building-blocks)
 
 ## Built With
    Ruby
-## Getting started
+## Getting started--
 
 ### Prerequisites
 - To run this project, you must have Ruby installed in your computer.
