@@ -90,7 +90,7 @@ module Enumerable
     my_each do |x|
       (next if x == acc)
         next
-      else
+      
         acc = yield(acc, x)
       end
     end
