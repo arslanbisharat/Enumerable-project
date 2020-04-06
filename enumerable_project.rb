@@ -1,10 +1,4 @@
-Copyright (c) Muahmmad Arslan
-# rubocop:disable Metrics/BlockNesting
-# rubocop:disable Metrics/CyclomaticComplexity
-# rubocop:disable Metrics/PerceivedComplexity
-# rubocop:disable Metrics/ModuleLength
-# rubocop:disable Style/IfInsideElse
-# rubocop:disable Style/CaseEquality
+# Copyright (c) Muahmmad Arslan
 
 module Enumerable
   def my_each
@@ -143,8 +137,9 @@ def multiply_els(array)
 end
 
 # rubocop:enable Metrics/BlockNesting
+# rubocop:enable Metrics/ModuleLength
 # rubocop:enable Metrics/CyclomaticComplexity
 # rubocop:enable Metrics/PerceivedComplexity
-# rubocop:enable Metrics/ModuleLength
-# rubocop:enable Style/IfInsideElse
 # rubocop:enable Style/CaseEquality
+# rubocop:enable Style/IfInsideElse
+
