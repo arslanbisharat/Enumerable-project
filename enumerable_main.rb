@@ -1,86 +1,112 @@
+# rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+# Adding my_methods to Enumerable module
 module Enumerable
-  def my_each
-    self.length.times do |x|
-      yield(self[x])
+    def my_each
+      return to_enum unless block_given?
+  
+      size.times { |n| yield self[n] }
     end
-  end
-
-  def my_each_with_index
-    self.length.times do |x|
-      yield(self[x], x)
+  
+    def my_each_with_index
+      return to_enum unless block_given?
+  
+      size.times { |n| yield self[n], n }
     end
-  end
-
+  
     def my_select
-        self.length.times do |x|
-            if yield(self[x])
-                puts self[x]
-            end
+      return to_enum unless block_given?
+  
+      array = []
+      my_each { |n| array.push(n) if yield(n) }
+      array
+    end
+  
+    def my_all?(arg = nil)
+      if arg.is_a?(Regexp)
+        my_each { |n| return false unless arg.match(n) }
+      elsif arg.is_a?(Integer) || arg.is_a?(String)
+        my_each { |n| return false unless n == arg }
+      elsif block_given?
+        my_each { |n| return false unless yield(n) }
+      elsif arg.nil?
+        my_each { |n| return false unless n }
+      else
+        my_each { |n| return false unless n.is_a?(arg) }
+      end
+      true
+    end
+  
+    def my_any?(arg = nil, &block)
+      if arg.is_a?(Regexp)
+        my_each { |n| return true if arg.match(n) }
+      elsif arg.is_a?(Integer) || arg.is_a?(String)
+        my_each { |n| return true if n == arg }
+      elsif block_given?
+        my_each { |n| return true if block.call(n) }
+      elsif arg.nil?
+        my_each { |n| return true if n }
+      else
+        my_each { |n| return true if n.is_a?(arg) }
+      end
+      false
+    end
+  
+    def my_none?(arg = nil, &block)
+      !my_any?(arg, &block)
+    end
+  
+    def my_count(arg = nil)
+      count = 0
+      if block_given? && arg.nil?
+        my_each { |n| count += 1 if yield(n) }
+      elsif arg.nil?
+        my_each { |n| count += 1 if n }
+      elsif arg.is_a?(Integer) || arg.is_a?(String)
+        my_each { |n| count += 1 if n == arg }
+      else
+        my_each { |n| count += 1 if n.is_a?(arg) }
+      end
+      count
+    end
+  
+    def my_map(proc = nil, &block)
+      return to_enum unless proc || block
+  
+      proc = block if block && !proc
+      obj = to_a
+      obj.size.times { |n| obj[n] = proc.call(obj[n]) }
+      obj
+    end
+  
+    def my_inject(initial = 0, arg = nil)
+      obj = to_a
+      memo = obj[0]
+  
+      if initial.is_a?(Symbol)
+        arg = initial
+        initial = 0
+        initial, memo = 1 if arg == :/ || arg == :* && initial.zero?
+      end
+  
+      memo = (my_inject { |oper, n| oper.public_send(arg, n) }).public_send(arg, initial) unless arg.nil?
+  
+      if block_given?
+        if initial.zero?
+          (obj.size - 1).times { |n| memo = yield(memo, obj[n + 1]) }
+        else
+          obj.size.times { |n| initial = yield(initial, obj[n]) }
+          memo = initial
         end
+      end
+      memo
     end
-
-    def my_all?
-        self.length.times do |x|
-            if yield(self[x]) == false
-                return false
-            end
-        end
-        return true
-    end
-
-    def my_any?
-        self.length.times do |x|
-            if yield(self[x])
-                return true
-            end
-        end
-        return false
-    end
-
-    def my_none?
-        self.length.times do |x|
-            if yield(self[x])
-                return false
-            end
-        end
-        return true
-    end
-
-    def my_count
-        counter = 0
-        self.length.times do |x|
-            if yield(self[x])
-                counter += 1
-            end
-        end
-        return counter
-    end
-
-    def my_map(proc=nil)
-        newArr = []
-            if proc
-                self.length.times do |x|
-                newArr[x] = proc.call(self[x])
-                 end
-            else
-                self.length.times do |x|
-                newArr[x] = yield(self[x])
-                 end
-                end
-        puts newArr
-    end
-
-  def my_inject(go = 0)
-    acum = go
-    self.length.times do |x|
-        acum = yield(acum, self[x])
-    end
-    return acum
   end
-    
-  def multiply_els
-    self.my_inject(1) do |k, x|
-      k *= x
+  
+  module TestEnumerable
+    def multiply_els(array)
+      array.my_inject(:*)
     end
   end
-end
+  
+  # rubocop:enable all
