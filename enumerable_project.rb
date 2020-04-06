@@ -3,52 +3,52 @@
 # rubocop:disable Metrics/ModuleLength
 
 module Enumerable
-    def my_each
-        self.length.times do |e|
-            yield(self[e])
-        end
+  def my_each
+    self.length.times do |e|
+      yield(self[e])
     end
+  end
   
-    def my_each_with_index
-        self.length.times do |e|
-            yield(self[e], e)
-        end
+  def my_each_with_index
+    self.length.times do |e|
+      yield(self[e], e)
     end
+  end
   
-    def my_select
-        self.length.times do |e|
-            if yield(self[e])
-                puts self[e]
-            end
-        end
+  def my_select
+    self.length.times do |e|
+      if yield(self[e])
+        puts self[e]
+      end
     end
+  end
   
-    def my_all?
-        self.length.times do |e|
-            if yield(self[e]) == false
-                return false
-            end
-        end
-        return true
-    end
-  
-    def my_any?
-        self.length.times do |e|
-            if yield(self[e])
-                return true
-            end
-        end
+  def my_all?
+    self.length.times do |e|
+      if yield(self[e]) == false
         return false
+      end
     end
+    return true
+  end
   
-    def my_none?
-        self.length.times do |e|
-            if yield(self[e])
-                return false
-            end
-        end
+  def my_any?
+    self.length.times do |e|
+      if yield(self[e])
         return true
+      end
     end
+    return false
+  end
+  
+  def my_none?
+    self.length.times do |e|
+      if yield(self[e])
+        return false
+      end
+    end
+    return true
+  end
   
     def my_count
         counter = 0
@@ -82,12 +82,12 @@ module Enumerable
         return acum
     end
   
-    def multiply_els
-        self.my_inject(1) do |k, e|
-            k *= e
-        end
+  def multiply_els
+    self.my_inject(1) do |k, e|
+      k *= e
     end
   end
+end
   
 # rubocop:enable Metrics/CyclomaticComplexity
 # rubocop:enable Metrics/PerceivedComplexity
