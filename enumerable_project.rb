@@ -1,131 +1,153 @@
-# rubocop:disable Metrics/CyclomaticComplexity
-# rubocop:disable Metrics/PerceivedComplexity
-# rubocop:disable Metrics/ModuleLength
+# frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength,
 module Enumerable
+  # rubocop:disable Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
   def my_each
-    obj = self
-    obj.length.times { |i| yield(obj[i]) if block_given? }
-    to_enum unless block_given?
-  end
+    i = 0
+    return to_enum unless block_given?
 
-  def my_each_with_index(start = 0)
-    obj = self
-    i = start
-    i = 0 if start.zero?
-    while i < obj.length
-      yield(obj[i], i) if block_given?
-
+    while i < size
+      yield(to_a[i])
       i += 1
     end
-    to_enum unless block_given?
+    self
+  end
+
+  def my_each_with_index
+    i = 0
+    return to_enum unless block_given?
+
+    while i < size
+      yield(to_a[i], i)
+      i += 1
+    end
+    self
   end
 
   def my_select
-    obj = self
-    array = []
-    obj.length.times { |i| array.push(obj[i]) if block_given? && yield(obj[i]) }
     return to_enum unless block_given?
 
-    array
+    if block_given?
+      arr = []
+      my_each do |i|
+        arr << i if yield(i)
+      end
+    end
+    arr
   end
 
-  def my_all?(arg = nil)
-    obj = self
-    if block_given?
-      obj.length.times { |i| return false unless yield(obj[i]) }
-    elsif arg.is_a?(Regexp)
-      obj.length.times { |i| return false unless obj[i].match arg }
-    elsif arg.is_a?(Class)
-      obj.length.times { |i| return false unless obj[i].is_a?(arg) }
-    elsif arg.is_a?(Numeric) || arg.is_a?(String)
-      obj.length.times { |i| return false if obj[i] != arg }
-    else
-      obj.length.times { |i| return false unless obj[i] }
+  def my_all?(input = nil)
+    my_each do |i|
+      return false if block_given? && !yield(i)
+
+      if !block_given? && input.nil?
+        return false unless i
+      elsif input
+        return false unless check_input(i, input)
+      end
     end
     true
   end
 
-  def my_any?(arg = nil)
-    obj = self
-    if block_given?
-      obj.length.times { |i| return true if yield(obj[i]) }
-    elsif arg.is_a?(Regexp)
-      obj.length.times { |i| return true if obj[i].match arg }
-    elsif arg.is_a?(Class)
-      obj.length.times { |i| return true if obj[i].is_a?(arg) }
-    elsif arg.is_a?(Numeric) || arg.is_a?(String)
-      obj.length.times { |i| return true if obj[i] == arg }
-    else
-      obj.length.times { |i| return true if obj[i] }
+  def my_any?(input = nil)
+    my_each do |i|
+      return true if block_given? && yield(i)
+
+      if !block_given? && input.nil?
+        return true if i
+      elsif !block_given? && input
+        return true if check_input(i, input)
+      end
     end
     false
   end
 
-  def my_none?(arg = nil)
-    obj = self
-    if block_given?
-      obj.length.times { |i| return false if yield(obj[i]) }
-    elsif arg.is_a?(Regexp)
-      obj.length.times { |i| return false if obj[i].match arg }
-    elsif arg.is_a?(Class)
-      obj.length.times { |i| return false if obj[i].is_a?(arg) }
-    elsif arg.is_a?(Numeric) || arg.is_a?(String)
-      obj.length.times { |i| return false if obj[i] == arg }
-    else
-      obj.length.times { |i| return false if obj[i] }
+  def my_none?(input = nil)
+    my_each do |i|
+      return false if block_given? && yield(i)
+
+      if !block_given? && input.nil?
+        return false if i
+      elsif !block_given? && input
+        return false if check_input(i, input)
+      end
     end
     true
   end
 
-  def my_count(arg = nil)
-    obj = self
+  def my_count(input = nil)
     counter = 0
-    if block_given?
-      obj.length.times { |i| counter += 1 if yield(obj[i]) }
-    elsif arg.nil?
-      counter = obj.length
-    elsif !arg.nil?
-      obj.length.times { |i| counter += 1 if obj[i] == arg }
+    my_each do |i|
+      if block_given? && input.nil?
+        counter += 1 if yield(i)
+      elsif i && input.nil?
+        counter += 1
+      elsif check_input(i, input) && input.is_a?(Integer)
+        counter += 1
+      end
     end
     counter
   end
 
-  def my_map(proc = nil)
-    obj = self
-    obj = obj.to_a unless obj.is_a?(Array)
-    array = []
-    if proc.nil? && block_given?
-      obj.length.times { |i| array.push(yield(obj[i])) }
-    elsif !proc.nil? || (!proc.nil? && block_given)
-      obj.length.times { |i| array.push(proc.call(obj[i])) }
-    else
-      return to_enum
+  def my_map
+    arr = []
+    my_each do |i|
+      return to_enum unless block_given?
+
+      arr << yield(i) || arr << proc.call(i) if block_given?
     end
-    array
+    arr
   end
 
-  def my_inject(arg1 = nil, arg2 = nil)
-    obj = self
-    obj = obj.to_a unless obj.is_a?(Array)
-    result = 0
-    result = arg1 if arg1.is_a?(Numeric)
-    result = '' if obj[0].is_a?(String)
-    if block_given?
-      obj.length.times { |i| result = yield(result, obj[i]) }
-    elsif arg1.is_a?(Symbol)
-      obj.length.times { |i| result = result.send(arg1, obj[i]) }
-    else
-      obj.length.times { |i| result = result.send(arg2, obj[i]) }
+  def my_inject(start = nil, symbol = nil)
+    new_array = to_a
+    memo = start
+    if start && symbol
+      my_each do |i|
+        memo = memo.send(symbol, i)
+      end
+    elsif (start.is_a? Symbol) && symbol.nil?
+      memo = new_array[0]
+      my_each_with_index do |e, i|
+        next if i.zero?
+
+        memo = memo.send(start, e)
+      end
     end
-    result
+    if block_given? && start.nil?
+      memo = new_array[0]
+      my_each_with_index do |e, i|
+        next if i.zero?
+
+        memo = yield(memo, e)
+      end
+    end
+
+    if block_given? && start && symbol.nil?
+      my_each do |e|
+        memo = yield(memo, e)
+      end
+    end
+    memo
   end
 
-  def multiply_els(array)
-    array.my_inject { |a, b| a * b }
+  def multiply_els
+    my_inject do |acc, e|
+      acc * e
+    end
+  end
+
+  def check_input(item, input)
+    if input.class == Regexp
+      return true if item.to_s.match(input)
+    elsif input.class == Class
+      return true if item.instance_of? input
+    elsif input.class == String || input.class == Integer || input.class == Symbol
+      return true if item == input
+    end
   end
 end
 
-# rubocop:enable Metrics/CyclomaticComplexity
-# rubocop:enable Metrics/PerceivedComplexity
+# rubocop:enable Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
 # rubocop:enable Metrics/ModuleLength
