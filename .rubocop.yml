@@ -1,2 +1,4 @@
 AllCops:
   EnabledByDefault: true
+bundle exec rubocop --auto-correct --only FrozenStringLiteralComment
+bundle exec rake
