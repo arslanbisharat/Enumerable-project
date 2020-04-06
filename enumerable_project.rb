@@ -1,4 +1,4 @@
- #Copyright (c) Muahmmad Arslan
+# Copyright (c) Muahmmad Arslan
 
 module Enumerable
   def my_each
