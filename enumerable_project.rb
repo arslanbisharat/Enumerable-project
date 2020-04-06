@@ -1,91 +1,140 @@
-# frozen_string_literal: true
+# reimplementing methods
+private
+
+def validate?(arg, element, equality)
+  if arg.instance_of? Regexp
+    arg.match?(element.to_s)
+  elsif element.instance_of? arg.class
+    arg == element
+  elsif arg.instance_of? Class
+    element.is_a? arg
+  else
+    equality
+  end
+end
 
 module Enumerable
   def my_each
-    i = 0
-    while self[i]
-      yield(self[i])
-      i += 1
-    end
+    return to_enum(:my_each) unless block_given?
+
+    size.times { |i| yield(to_a[i]) }
+    self
   end
 
   def my_each_with_index
-    my_each { |e| yield(e, index(e)) }
+    return to_enum(:my_each_with_index) unless block_given?
+
+    size.times { |i| yield(to_a[i], i) }
+    self
   end
 
   def my_select
-    result = []
-    each do |e|
-      result << e if yield(e)
-    end
-    result
+    return to_enum(:my_select) unless block_given?
+
+    arr = []
+    my_each { |i| arr << i if yield(i) }
+    arr
   end
 
-  def my_all?
-    my_each do |e|
-      return false unless yield(e)
+  def my_all?(arg = nil)
+    my_each do |i|
+      condition = block_given? && !yield(i)
+      condition ||= !block_given? && arg.nil? && !i
+      condition ||= !arg.nil? && !validate?(arg, i, false)
+      return false if condition
     end
     true
   end
 
-  def my_any?
-    my_each do |e|
-      return true if yield(e)
+  def my_any?(arg = nil)
+    my_each do |i|
+      condition = block_given? && yield(i)
+      condition ||= !block_given? && arg.nil? && i
+      condition ||= !arg.nil? && validate?(arg, i, false)
+      return true if condition
     end
     false
   end
 
-  def my_none?
-    return true unless block_given?
-
-    my_each do |e|
-      return true unless yield(e)
+  def my_none?(arg = nil)
+    my_each do |i|
+      condition = block_given? && yield(i)
+      condition ||= !block_given? && arg.nil? && i
+      condition ||= !arg.nil? && validate?(arg, i, false)
+      return false if condition
     end
-    false
+    true
   end
 
-  def my_count(obj = nil)
-    count = 0
-    my_each do |e|
-      count += 1
-      return count if obj && count == obj
-      return count if block_given? && yield(e)
+  def my_count(arg = nil)
+    sum = 0
+    my_each do |i|
+      condition = arg.nil? && !block_given?
+      condition ||= block_given? && yield(i)
+      condition ||= !arg.nil? && i == arg
+      sum += 1 if condition
     end
-    return count unless block_given?
+    sum
   end
 
-  def my_map(&block)
+  def my_map
+    return to_enum(:my_map) unless block_given?
+
     arr = []
-    my_each do |e|
-      arr << block.call(e)
-    end
+    my_each { |i| arr << yield(i) }
     arr
   end
 
-  def my_inject
-    memo = self[0]
-    my_each do |e|
-      memo = yield(memo, e)
+  def inject_arg_valid?(*arg)
+    acc = arg[0]&.is_a?(Numeric) ? arg[0] : to_a[0]
+    if arg[0]&.is_a? Symbol
+      operation = arg[0]
+    elsif arg[1]&.is_a? Symbol
+      operation = arg[1]
     end
-    memo
+    [acc, operation]
+  end
+
+  # awesomeness in each line
+  def eval_operation?(operation)
+    ':/ :% :-'.include?(operation.to_s)
+  end
+
+  def inject_valid_symbol?
+    lambda do |arg, i|
+      res = (arg.size == 1 && !i.zero?)
+      res ||= arg.size == 2
+      res
+    end
+  end
+
+  def next_index?(arg, index)
+    ret = arg.size == 2 || arg.size.zero?
+    ret &&= index.zero?
+    ret
+  end
+
+  def check_operation(operation, acc, elem)
+    eval_operation?(operation) ? [acc, elem] : [elem, acc]
+  end
+
+  def my_inject(*arg)
+    acc, operation = inject_arg_valid?(*arg)
+    each_with_index do |e, i|
+      if block_given? && arg.size < 2
+        next if next_index?(arg, i)
+
+        acc = yield(acc, e) if acc
+      elsif inject_valid_symbol?.call(arg, i)
+        e, acc = check_operation(operation, acc, e)
+        acc = e.send(operation, acc)
+      end
+      next
+    end
+    acc
   end
 end
 
-# arr = [4, 'hey', 2, 'Hi there!']
-arr = [1, 2, 3, 4]
-
-# p arr.my_each
-# arr.my_each_with_index { |e, i| p "#{e}, #{i}" }
-# p arr.my_select { |e| e.is_a? String }
-# p arr.my_all? { |e| e.is_a? String }
-# p arr.my_any? { |e| e.is_a? String }
-# p arr.my_none? { |e| e == 99 }
-# p arr.my_count
-
-double_els = ->(e) { e * 2 }
-p arr.my_map { |e| double_els.call(e) }
-
-def multiply_els(arr)
-  arr.my_inject { |memo, e| memo * e }
+def multiply_els(arg)
+  arg.my_inject(1) { |acc, product| acc * product }
 end
-p "multiply_els([2, 4, 5])"

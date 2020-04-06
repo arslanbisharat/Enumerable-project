@@ -38,5 +38,5 @@ Layout/HashAlignment:
 Layout/ExtraSpacing:
   AllowForAlignment: false
 Layout/MultilineMethodCallIndentation:
-  Enabled: false
+  Enabled: true
   EnforcedStyle: indented
