@@ -88,4 +88,4 @@ p arr.my_map { |e| double_els.call(e) }
 def multiply_els(arr)
   arr.my_inject { |memo, e| memo * e }
 end
-p multiply_els([2, 4, 5])
+p "multiply_els([2, 4, 5])"
