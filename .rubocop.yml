@@ -1,5 +1,5 @@
 AllCops:
-  EnabledByDefault : false
+  EnabledByDefault : true
   Exclude:
     - "README.md"
     - "Guardfile"
@@ -8,7 +8,7 @@ AllCops:
   DisplayCopNames: true
 
 Layout/LineLength:
-  Max: 120
+  Max: 90
 Metrics/MethodLength:
   Max: 20
 Metrics/AbcSize:
@@ -21,6 +21,8 @@ Metrics/BlockLength:
 
 
 Style/Documentation:
+  Enabled: false
+Style/Encoding:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
