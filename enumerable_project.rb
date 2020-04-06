@@ -1,140 +1,131 @@
-# reimplementing methods
-private
-
-def validate?(arg, element, equality)
-  if arg.instance_of? Regexp
-    arg.match?(element.to_s)
-  elsif element.instance_of? arg.class
-    arg == element
-  elsif arg.instance_of? Class
-    element.is_a? arg
-  else
-    equality
-  end
-end
+# rubocop:disable Metrics/CyclomaticComplexity
+# rubocop:disable Metrics/PerceivedComplexity
+# rubocop:disable Metrics/ModuleLength
 
 module Enumerable
   def my_each
-    return to_enum(:my_each) unless block_given?
-
-    size.times { |i| yield(to_a[i]) }
-    self
+    obj = self
+    obj.length.times { |i| yield(obj[i]) if block_given? }
+    to_enum unless block_given?
   end
 
-  def my_each_with_index
-    return to_enum(:my_each_with_index) unless block_given?
+  def my_each_with_index(start = 0)
+    obj = self
+    i = start
+    i = 0 if start.zero?
+    while i < obj.length
+      yield(obj[i], i) if block_given?
 
-    size.times { |i| yield(to_a[i], i) }
-    self
+      i += 1
+    end
+    to_enum unless block_given?
   end
 
   def my_select
-    return to_enum(:my_select) unless block_given?
+    obj = self
+    array = []
+    obj.length.times { |i| array.push(obj[i]) if block_given? && yield(obj[i]) }
+    return to_enum unless block_given?
 
-    arr = []
-    my_each { |i| arr << i if yield(i) }
-    arr
+    array
   end
 
   def my_all?(arg = nil)
-    my_each do |i|
-      condition = block_given? && !yield(i)
-      condition ||= !block_given? && arg.nil? && !i
-      condition ||= !arg.nil? && !validate?(arg, i, false)
-      return false if condition
+    obj = self
+    if block_given?
+      obj.length.times { |i| return false unless yield(obj[i]) }
+    elsif arg.is_a?(Regexp)
+      obj.length.times { |i| return false unless obj[i].match arg }
+    elsif arg.is_a?(Class)
+      obj.length.times { |i| return false unless obj[i].is_a?(arg) }
+    elsif arg.is_a?(Numeric) || arg.is_a?(String)
+      obj.length.times { |i| return false if obj[i] != arg }
+    else
+      obj.length.times { |i| return false unless obj[i] }
     end
     true
   end
 
   def my_any?(arg = nil)
-    my_each do |i|
-      condition = block_given? && yield(i)
-      condition ||= !block_given? && arg.nil? && i
-      condition ||= !arg.nil? && validate?(arg, i, false)
-      return true if condition
+    obj = self
+    if block_given?
+      obj.length.times { |i| return true if yield(obj[i]) }
+    elsif arg.is_a?(Regexp)
+      obj.length.times { |i| return true if obj[i].match arg }
+    elsif arg.is_a?(Class)
+      obj.length.times { |i| return true if obj[i].is_a?(arg) }
+    elsif arg.is_a?(Numeric) || arg.is_a?(String)
+      obj.length.times { |i| return true if obj[i] == arg }
+    else
+      obj.length.times { |i| return true if obj[i] }
     end
     false
   end
 
   def my_none?(arg = nil)
-    my_each do |i|
-      condition = block_given? && yield(i)
-      condition ||= !block_given? && arg.nil? && i
-      condition ||= !arg.nil? && validate?(arg, i, false)
-      return false if condition
+    obj = self
+    if block_given?
+      obj.length.times { |i| return false if yield(obj[i]) }
+    elsif arg.is_a?(Regexp)
+      obj.length.times { |i| return false if obj[i].match arg }
+    elsif arg.is_a?(Class)
+      obj.length.times { |i| return false if obj[i].is_a?(arg) }
+    elsif arg.is_a?(Numeric) || arg.is_a?(String)
+      obj.length.times { |i| return false if obj[i] == arg }
+    else
+      obj.length.times { |i| return false if obj[i] }
     end
     true
   end
 
   def my_count(arg = nil)
-    sum = 0
-    my_each do |i|
-      condition = arg.nil? && !block_given?
-      condition ||= block_given? && yield(i)
-      condition ||= !arg.nil? && i == arg
-      sum += 1 if condition
+    obj = self
+    counter = 0
+    if block_given?
+      obj.length.times { |i| counter += 1 if yield(obj[i]) }
+    elsif arg.nil?
+      counter = obj.length
+    elsif !arg.nil?
+      obj.length.times { |i| counter += 1 if obj[i] == arg }
     end
-    sum
+    counter
   end
 
-  def my_map
-    return to_enum(:my_map) unless block_given?
-
-    arr = []
-    my_each { |i| arr << yield(i) }
-    arr
-  end
-
-  def inject_arg_valid?(*arg)
-    acc = arg[0]&.is_a?(Numeric) ? arg[0] : to_a[0]
-    if arg[0]&.is_a? Symbol
-      operation = arg[0]
-    elsif arg[1]&.is_a? Symbol
-      operation = arg[1]
+  def my_map(proc = nil)
+    obj = self
+    obj = obj.to_a unless obj.is_a?(Array)
+    array = []
+    if proc.nil? && block_given?
+      obj.length.times { |i| array.push(yield(obj[i])) }
+    elsif !proc.nil? || (!proc.nil? && block_given)
+      obj.length.times { |i| array.push(proc.call(obj[i])) }
+    else
+      return to_enum
     end
-    [acc, operation]
+    array
   end
 
-  # awesomeness in each line
-  def eval_operation?(operation)
-    ':/ :% :-'.include?(operation.to_s)
-  end
-
-  def inject_valid_symbol?
-    lambda do |arg, i|
-      res = (arg.size == 1 && !i.zero?)
-      res ||= arg.size == 2
-      res
+  def my_inject(arg1 = nil, arg2 = nil)
+    obj = self
+    obj = obj.to_a unless obj.is_a?(Array)
+    result = 0
+    result = arg1 if arg1.is_a?(Numeric)
+    result = '' if obj[0].is_a?(String)
+    if block_given?
+      obj.length.times { |i| result = yield(result, obj[i]) }
+    elsif arg1.is_a?(Symbol)
+      obj.length.times { |i| result = result.send(arg1, obj[i]) }
+    else
+      obj.length.times { |i| result = result.send(arg2, obj[i]) }
     end
+    result
   end
 
-  def next_index?(arg, index)
-    ret = arg.size == 2 || arg.size.zero?
-    ret &&= index.zero?
-    ret
-  end
-
-  def check_operation(operation, acc, elem)
-    eval_operation?(operation) ? [acc, elem] : [elem, acc]
-  end
-
-  def my_inject(*arg)
-    acc, operation = inject_arg_valid?(*arg)
-    each_with_index do |e, i|
-      if block_given? && arg.size < 2
-        next if next_index?(arg, i)
-
-        acc = yield(acc, e) if acc
-      elsif inject_valid_symbol?.call(arg, i)
-        e, acc = check_operation(operation, acc, e)
-        acc = e.send(operation, acc)
-      end
-      next
-    end
-    acc
+  def multiply_els(array)
+    array.my_inject { |a, b| a * b }
   end
 end
 
-def multiply_els(arg)
-  arg.my_inject(1) { |acc, product| acc * product }
-end
+# rubocop:enable Metrics/CyclomaticComplexity
+# rubocop:enable Metrics/PerceivedComplexity
+# rubocop:enable Metrics/ModuleLength
