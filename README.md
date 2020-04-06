@@ -14,12 +14,6 @@ This project is taken from: [odionhandle](https://www.theodinproject.com/courses
 
 ## Authors
 
-👤 **Paul chinweokwu **
-
-- Github: [@githubhandle](https://github.com/chinweokwu)
-- Twitter: [@twitterhandle](https://twitter.com/Morah89820846)
-- Linkedin: [linkedin](https://www.linkedin.com/in/paul-morah-285b63172/)
-
 
 👤 **Muhammad Arslan**
 
