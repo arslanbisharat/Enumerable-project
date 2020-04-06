@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+Copyright (c) 2020 Muhmmad Arslan
 
 module Enumerable
   def my_each
@@ -59,17 +59,17 @@ module Enumerable
     if args.empty?
       return length unless block_given?
 
-      i = 0
+        i = 0
       my_each do |x|
         i += 1 if yield(x) == true
       end
-      i
+        i
     else
       i = 0
       my_each do |x|
         i += 1 if args[0] == x
       end
-      i
+        i
     end
   end
 
@@ -88,7 +88,7 @@ module Enumerable
     return self unless block_given?
 
     my_each do |x|
-      if x == acc
+      (next if x == acc)
         next
       else
         acc = yield(acc, x)
@@ -103,7 +103,7 @@ def multiply_els(arr)
   mult
 end
 
-puts multiply_els([1, 2, 3])
+puts "multiply_els([1, 2, 3])"
 
 # ****************************************************************
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TESTS<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
