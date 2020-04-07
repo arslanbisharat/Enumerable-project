@@ -1,4 +1,4 @@
-# Copyright (c) Muahmmad ARslan
+/^Copyright (\(c\) )?2[0-9]{3} 
 module Enumerable
   def my_each
     return to_enum unless block_given?
