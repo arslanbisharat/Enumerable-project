@@ -5,6 +5,9 @@ AllCops:
     - "README.md"
     - "Guardfile"
     - "Rakefile"
+    - '*.cfg'
+    - '*.yml'
+    - 'Gemfile'
 
   DisplayCopNames: true
 
