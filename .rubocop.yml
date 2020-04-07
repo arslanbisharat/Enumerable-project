@@ -1,4 +1,5 @@
 AllCops:
+  TargetRubyVersion: 2.4.2
   EnabledByDefault : true
   Exclude:
     - "README.md"
