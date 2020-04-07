@@ -1,4 +1,4 @@
-'/Copyright (\(c\) )?2\d{3} Acme Inc'
+/^Copyright (\(c\) )?2[0-9]{3} Acme Inc
 module Enumerable
   def my_each
     return to_enum unless block_given?
