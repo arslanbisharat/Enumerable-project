@@ -1,3 +1,5 @@
+# rubocop: disable Metrics/ModuleLength 
+# rubocop: enable Metrics/ModuleLength 
 module Enumerable
   def my_each
     if self.class == Array
