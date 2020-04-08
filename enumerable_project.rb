@@ -1,124 +1,181 @@
 module Enumerable
-  def my_each
-    return to_enum unless block_given?
 
-    length.times { |n| yield(self[n]) }
-    self
-  end
+	def my_each
+		for i in 0...self.length
+			yield(self[i])
+		end
+		self
+	end
 
-  def my_each_with_index
-    return to_enum unless block_given?
+	def my_each_with_index
+		for i in 0...self.length
+			yield(self[i], i)
+		end
+		self
+	end
 
-    length.times { |n| yield(self[n], n) }
-    self
-  end
+	def my_select
+		selection = []
+			self.my_each do |val|
+				selection << val if yield(val)
+			end
+		selection
+	end
 
-  def my_select
-    return to_enum unless block_given?
+	def my_all?
+		self.my_each {|val| return false if !yield(val)}
+		true
+	end
 
-    new_array = []
-    length.times { |n| new_array.push(self[n]) if yield(self[n]) }
-    new_array
-  end
+	def my_any?
+		self.my_each {|val| return true if yield(val)}
+		false
+	end
 
-  def my_all?(arg = nil)
-    if arg.is_a?(Class)
-      length.times { |n| return false unless self[n].is_a?(arg) }
-    elsif arg.is_a?(String) || arg.is_a?(Integer)
-      length.times { |n| return false unless self[n] == arg }
-    elsif !arg.nil?
-      length.times { |n| return false unless self[n].match(arg) }
-    elsif !block_given?
-      length.times { |n| return false if self[n] == false || self[n].nil? }
-    else
-      length.times { |n| return false unless yield(self[n]) }
-    end
-    true
-  end
+	def my_none?
+		self.my_each {|val| return false if yield(val)}
+		true
+	end
 
-  def my_any?(arg = nil)
-    if arg.is_a?(Class)
-      length.times { |n| return true if self[n].is_a?(arg) }
-    elsif arg.is_a?(String) || arg.is_a?(Integer)
-      length.times { |n| return true if self[n] == arg }
-    elsif !arg.nil?
-      length.times { |n| return true if self[n].match(arg) }
-    elsif !block_given?
-      length.times { |n| return true unless self[n] == false || self[n].nil? }
-    else
-      length.times { |n| return true if yield(self[n]) }
-    end
-    false
-  end
+	def my_count
+		# total = 0
+		# self.my_each {|val| total += 1}
+		# total
+		self.length
+	end
 
-  def my_none?(arg = nil)
-    if arg.is_a?(Class)
-      length.times { |n| return false if self[n].is_a?(arg) }
-    elsif arg.is_a?(String) || arg.is_a?(Integer)
-      length.times { |n| return false if self[n] == arg }
-    elsif !arg.nil?
-      length.times { |n| return false if self[n].match(arg) }
-    elsif !block_given?
-      length.times { |n| return false unless self[n] == false || self[n].nil? }
-    else
-      length.times { |n| return false if yield(self[n]) }
-    end
-    true
-  end
+	# # block version
+	# def my_map
+	# 	collection = []
+	# 	self.my_each {|val| collection << yield(val)}
+	# 	collection
+	# end
 
-  def my_count(arg = nil)
-    unless block_given?
-      counter = 0
-      length.times { |n| counter += 1 if self[n] == arg }
-      return counter unless arg.nil?
+	# proc version
+	# def my_map(proc)
+	# 	collection = []
+	# 	self.my_each {|val| collection << proc.call(val)}
+	# 	collection
+	# end
 
-      return length
-    end
-    counter = 0
-    length.times { |n| counter += 1 if yield(self[n]) }
-    counter
-  end
+	# proc and block version
+	def my_map(proc=nil)
+		collection = []
+		if block_given? && proc
+			self.my_each {|val| collection << proc.call(yield(val))}
+		elsif proc
+			self.my_each {|val| collection << proc.call(val)}
+		else
+			self.my_each {|val| collection << yield(val)}
+		end
+		collection
+	end
 
-  def my_map(proc = nil)
-    return to_enum unless block_given?
+	def my_inject(initial=nil)
+		if initial.nil?
+			total = self[0]
+			arr = self[1...self.length]
+			arr.my_each {|val| total = yield(total, val)}
+		else
+			total = initial
+			self.my_each {|val| total = yield(total, val)}
+		end
+		total
+	end
 
-    new_array = []
-    if proc.nil?
-      length.times { |n| new_array.push(yield(self[n])) }
-    else
-      length.times { |n| new_array.push(proc.call(self[n])) }
-    end
-    new_array
-  end
-
-  def my_inject(result = 0, symbol = nil)
-    symbol, result = result, symbol if result.is_a?(Symbol) and symbol.is_a?(Integer)
-    symbol, result = result, 0 if result.is_a?(Symbol)
-    new_array = to_a
-    result = '' if new_array[0].is_a?(String)
-    if !block_given?
-      case symbol
-      when :+
-        new_array.length.times { |n| result += new_array[n] }
-      when :*
-        new_array.length.times { |n| result *= new_array[n] }
-      when :/
-        new_array.length.times { |n| result /= new_array[n] }
-      when :-
-        new_array.length.times { |n| result -= new_array[n] }
-      when :**
-        new_array.length.times { |n| result **= new_array[n] }
-      when :%
-        new_array.length.times { |n| result %= new_array[n] }
-      end
-      result
-    else
-      new_array.length.times { |n| result = yield(result, new_array[n]) }
-    end
-    result
-  end
 end
 
-def multiply_els(arr)
-  arr.my_inject { |x, y| x * y }
+
+def multiply_els(numbers)
+	numbers.my_inject {|total, val| total * val}
 end
+
+arr = [1, 2, 3]
+
+# TEST OUTPUT
+# my_each
+# p arr.each {|val| p val}
+# p arr.my_each {|val| p val}
+# =>
+# 1
+# 2
+# 3
+# [1, 2, 3]
+
+# my_each_with_index
+# p arr.each_with_index {|val, idx| p "value: #{val}, index: #{idx}"}
+# p arr.my_each_with_index {|val, idx| p "value: #{val}, index: #{idx}"}
+# =>
+# "value: 1, index: 0"
+# "value: 2, index: 1"
+# "value: 3, index: 2"
+# [1, 2, 3]
+
+# my_select
+# p arr.select {|val| val > 1}
+# p arr.my_select {|val| val > 1}
+# => [2, 3]
+# p arr.my_select {|val| val < 1}
+# => []
+
+# my_all?
+# p arr.all? {|val| val < 5}
+# p arr.my_all? {|val| val < 5}
+# => true
+# p arr.all? {|val| val > 4}
+# p arr.my_all? {|val| val > 4}
+# => false
+
+# my_any?
+# p arr.any? {|val| val == 2}
+# p arr.my_any? {|val| val == 2}
+# => true
+# p arr.any? {|val| val == 5}
+# p arr.my_any? {|val| val == 5}
+# => false
+
+# my_none?
+# p arr.none? {|val| val == 2}
+# p arr.my_none? {|val| val == 2}
+# => false
+# p arr.none? {|val| val == 5}
+# p arr.my_none? {|val| val == 5}
+# => true
+
+# my_count
+# p arr.count
+# p arr.my_count
+# p [1, nil, 2].count
+# p [1, nil, 2].my_count
+# => 3
+
+# my_map (block)
+# p arr.map {|val| val * 2}
+# p arr.my_map {|val| val * 2}
+# => [2, 4, 6]
+
+# my_map (proc)
+# map_proc = Proc.new {|val| val * 2}
+# p arr.map(&map_proc)
+# p arr.my_map(&map_proc)
+# => [2, 4, 6]
+
+# my_map (proc and block)
+# map_proc = Proc.new {|val| val * 2}
+# p arr.my_map(map_proc) {|val| val * 2}
+# => [4, 8, 12]
+
+# my_inject
+# p arr.inject {|total, val| total + val}
+# p arr.my_inject {|total, val| total + val}
+# => 6
+# p arr.inject {|total, val| total ** val}
+# p arr.my_inject {|total, val| total ** val}
+# => 1
+# p arr.inject(2) {|total, val| total ** val}
+# p arr.my_inject(2) {|total, val| total ** val}
+# => 64
+
+# multiply_els
+# p multiply_els([2,4,5])
+# => 40
