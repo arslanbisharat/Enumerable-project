@@ -26,6 +26,14 @@ Metrics/BlockLength:
 
 Style/Documentation:
   Enabled: false
+Style/RedundantSelf:
+  Enabled: false
+Style/For:
+  Enabled: false
+Layout/SpaceAroundOperators:
+  Enabled: false
+Style/RedundantSelf:
+  Enabled: false
 Style/Encoding:
   Enabled: false
 Style/ClassAndModuleChildren:
