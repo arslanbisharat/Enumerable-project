@@ -12,7 +12,7 @@ AllCops:
   DisplayCopNames: true
 
 Layout/LineLength:
-  Max: 90
+  Max: 120
 Metrics/MethodLength:
   Max: 20
 Metrics/AbcSize:
@@ -27,6 +27,8 @@ Metrics/BlockLength:
 Style/Documentation:
   Enabled: false
 Style/RedundantSelf:
+  Enabled: false
+Style/RedundantReturn:
   Enabled: false
 Style/For:
   Enabled: false
@@ -55,8 +57,6 @@ Style/MissingElse:
 Layout/HashAlignment:
   EnforcedColonStyle: key
 Layout/ExtraSpacing:
-  AllowForAlignment: false
-Layout/TrailingWhitespace:
   AllowForAlignment: false
 Layout/MultilineMethodCallIndentation:
   Enabled: true
