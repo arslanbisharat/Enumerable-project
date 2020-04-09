@@ -1,9 +1,10 @@
+/^Copyright (\(c\) )? 2008-20 .+/
 # rubocop: disable Metrics/ModuleLength 
 # rubocop: enable Metrics/ModuleLength 
 module Enumerable
   def my_each
     if self.class == Array
-      0.upto(self.length-1) do |i|
+      0.upto(self.length - 1) do |i|
         yield(self[i])
       end
     elsif self.class == Hash
@@ -15,7 +16,7 @@ module Enumerable
 
   def my_each_with_index
     if self.class == Array
-      0.upto(self.length-1) do |i|
+      0.upto(self.length - 1) do |i|
         yield(self[i], i)
       end
     elsif self.class == Hash
@@ -88,7 +89,7 @@ module Enumerable
   def my_map my_proc=nil
     arr = []
     if self.class == Array
-      0.upto(self.length-1) do |i|
+      0.upto(self.length - 1) do |i|
         my_proc ? arr << my_proc.call(i) : arr << yield(self[i])
       end
     elsif self.class == Hash
