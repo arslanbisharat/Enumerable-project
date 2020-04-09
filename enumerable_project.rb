@@ -1,4 +1,4 @@
-/^Copyright (\(c\) )? 2008-20 .+/
+^Copyright (\(c\) )?2\d{3} Acme Inc
 # rubocop: disable Metrics/ModuleLength 
 # rubocop: enable Metrics/ModuleLength 
 module Enumerable
