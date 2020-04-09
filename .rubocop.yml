@@ -38,6 +38,13 @@ Style/DefWithParentheses:
   Enabled: false
 Style/FrozenStringLiteralComment:
   EnforcedStyle: never
+Style/Copyright:
+  Enabled : false
+Style/DocumentationMethod:
+  Enabled : false
+Style/MissingElse:
+  Enabled : false
+
 
 Layout/HashAlignment:
   EnforcedColonStyle: key
