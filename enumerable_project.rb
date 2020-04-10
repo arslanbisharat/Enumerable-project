@@ -6,381 +6,111 @@
 
 module Enumerable
   def my_each
-    if self.class == Array
+    return to_enum unless block_given?
 
-      0.upto(self.length - 1) do |i|
-        yield(self[i])
-      end
-
-    elsif self.class == Hash
-
-      for key in self
-
-        yield(key[0].to_s, key[1])
-
-      end
-
-    end
+    size.times { |n| yield self[n] }
   end
 
   def my_each_with_index
-    if self.class == Array
+    return to_enum unless block_given?
 
-      0.upto(self.length - 1) do |i|
-        yield(self[i], i)
-      end
-
-    elsif self.class == Hash
-
-      i = 0
-
-      for key in self
-
-        yield([key[0].to_s, key[1]], i)
-
-        i+=1
-
-      end
-
-    end
+    size.times { |n| yield self[n], n }
   end
 
   def my_select
-    if self.class == Array
+    return to_enum unless block_given?
 
-      arr = []
-
-      0.upto(self.length-1) do |i|
-        arr << self[i] if yield(self[i])
-      end
-
-      return arr
-
-    elsif self.class == Hash
-
-      hash = {}
-
-      for key in self
-
-        hash[key[0]] = key[1] if yield(key[0], key[1])
-
-      end
-
-      return hash
-
-    end
+    array = []
+    my_each { |n| array.push(n) if yield(n) }
+    array
   end
 
-  def my_all?
-    if self.class == Array
-
-      0.upto(self.length-1) do |i|
-        return false unless yield(self[i])
-      end
-
-      return true
-
-    elsif self.class == Hash
-
-      for key in self
-
-        return false unless yield(key[0], key[1])
-
-      end
-
-      return true
-
+  def my_all?(arg = nil)
+    if arg.is_a?(Regexp)
+      my_each { |n| return false unless arg.match(n) }
+    elsif arg.is_a?(Integer) || arg.is_a?(String)
+      my_each { |n| return false unless n == arg }
+    elsif block_given?
+      my_each { |n| return false unless yield(n) }
+    elsif arg.nil?
+      my_each { |n| return false unless n }
+    else
+      my_each { |n| return false unless n.is_a?(arg) }
     end
+    true
   end
 
-  def my_none?
-    if self.class == Array
-
-      0.upto(self.length-1) do |i|
-        return false if yield(self[i])
-      end
-
-      return true
-
-    elsif self.class == Hash
-
-      for key in self
-
-        return false if yield(key[0], key[1])
-
-      end
-
-      return true
-
+  def my_any?(arg = nil, &block)
+    if arg.is_a?(Regexp)
+      my_each { |n| return true if arg.match(n) }
+    elsif arg.is_a?(Integer) || arg.is_a?(String)
+      my_each { |n| return true if n == arg }
+    elsif block_given?
+      my_each { |n| return true if block.call(n) }
+    elsif arg.nil?
+      my_each { |n| return true if n }
+    else
+      my_each { |n| return true if n.is_a?(arg) }
     end
+    false
   end
 
-  def my_count
+  def my_none?(arg = nil, &block)
+    !my_any?(arg, &block)
+  end
+
+  def my_count(arg = nil)
     count = 0
-
-    if self.class == Array
-
-      0.upto(self.length-1) do |i|
-        count += 1 if yield(self[i])
-      end
-
-    elsif self.class == Hash
-
-      for key in self
-
-        count += 1 if yield(key[0], key[1])
-
-      end
-
+    if block_given? && arg.nil?
+      my_each { |n| count += 1 if yield(n) }
+    elsif arg.nil?
+      my_each { |n| count += 1 if n }
+    elsif arg.is_a?(Integer) || arg.is_a?(String)
+      my_each { |n| count += 1 if n == arg }
+    else
+      my_each { |n| count += 1 if n.is_a?(arg) }
     end
-
-    return count
+    count
   end
 
-  def my_map(my_proc = nil)
-    arr = []
+  def my_map(proc = nil, &block)
+    return to_enum unless proc || block
 
-    if self.class == Array
-
-      0.upto(self.length - 1) do |i|
-        arr << (my_proc ? my_proc.call(i) : yield(self[i]))
-      end
-
-    elsif self.class == Hash
-
-      for key in self
-
-        arr << (my_proc ? my_proc.call(key[0], key[1]) : yield(key[0], key[1]))
-
-      end
-
-    end
-
-    return arr
+    proc = block if block && !proc
+    obj = to_a
+    obj.size.times { |n| obj[n] = proc.call(obj[n]) }
+    obj
   end
 
-  def my_inject(initial = nil)
-    unless initial
+  def my_inject(initial = 0, arg = nil)
+    obj = to_a
+    memo = obj[0]
 
-      initial = 0 if self.first.class == Integer || self.first.class == Float
-
-      initial = '' if self.first.class == String
-
-      initial = [] if self.first.class == Array
-
-      initial = {} if self.first.class == Hash
-
+    if initial.is_a?(Symbol)
+      arg = initial
+      initial = 0
+      initial, memo = 1 if arg == :/ || arg == :* && initial.zero?
     end
 
-    total = initial
+    memo = (my_inject { |oper, n| oper.public_send(arg, n) }).public_send(arg, initial) unless arg.nil?
 
-    if self.class == Array
-
-      0.upto(self.length-1) do |i|
-        total = yield(total, self[i])
+    if block_given?
+      if initial.zero?
+        (obj.size - 1).times { |n| memo = yield(memo, obj[n + 1]) }
+      else
+        obj.size.times { |n| initial = yield(initial, obj[n]) }
+        memo = initial
       end
-
-    elsif self.class == Hash
-
-      for key in self
-
-        total = yield(total, [key[0], key[1]])
-
-      end
-
     end
-
-    return total
+    memo
   end
 end
 
-def multiply_els(arr)
-  arr.my_inject(1) { |a, b| a * b }
+module TestEnumerable
+  def multiply_els(array)
+    array.my_inject(:*)
+  end
 end
-
-p(multiply_els([2, 4, 5]))
-
-# puts "Testing my_each"
-
-# sample_arr.each{|v| print "#{v*2}, "}
-
-# puts ""
-
-# sample_arr.my_each{|v| print "#{v*2}, "}
-
-# puts ""
-
-# sample_hash.each{|k, v| print "#{k}: #{v}, "}
-
-# puts ""
-
-# sample_hash.my_each{|k, v| print "#{k}: #{v}, "}
-
-# puts ""
-
-# puts "Testing my_each_with_index"
-
-# sample_arr.each_with_index{|v, i| print "#{v*i}, "}
-
-# puts ""
-
-# sample_arr.my_each_with_index{|v, i| print "#{v*i}, "}
-
-# puts ""
-
-# sample_hash.each_with_index{|(k, v), i| puts "#{k}, #{v}, and index is #{i}, "}
-
-# sample_hash.my_each_with_index{|(k, v), i| puts "#{k}, #{v}, and index is #{i}, "}
-
-# puts "Testing my_select"
-
-# p sample_arr.select{|v| v >= 3}
-
-# p sample_arr.my_select{|v| v >= 3}
-
-# p sample_hash.select{|k, v| v >= 3}
-
-# p sample_hash.my_select{|k, v| v >= 3}
-
-# p sample_hash.select{|k, v| k.length > 3}
-
-# p sample_hash.my_select{|k, v| k.length > 3}
-
-# p sample_hash.select{|k, v| k.length > v}
-
-# p sample_hash.my_select{|k, v| k.length > v}
-
-# puts "Testing my_all?"
-
-# p sample_arr.all?{|v| v <= 5}
-
-# p sample_arr.my_all?{|v| v <= 5}
-
-# p sample_arr.all?{|v| v < 5}
-
-# p sample_arr.my_all?{|v| v < 5}
-
-# p sample_hash.all?{|k, v| v >= 3}
-
-# p sample_hash.my_all?{|k, v| v >= 3}
-
-# p sample_hash.all?{|k, v| v <= 5}
-
-# p sample_hash.my_all?{|k, v| v <= 5}
-
-# p sample_hash.all?{|k, v| k.length >= 3}
-
-# p sample_hash.my_all?{|k, v| k.length >= 3}
-
-# p sample_hash.all?{|k, v| k.length > 3}
-
-# p sample_hash.my_all?{|k, v| k.length > 3}
-
-# p sample_hash.all?{|k, v| k.length > v}
-
-# p sample_hash.my_all?{|k, v| k.length > v}
-
-# puts "Testing my_none?"
-
-# p sample_arr.none?{|v| v >= 5}
-
-# p sample_arr.my_none?{|v| v >= 5}
-
-# p sample_arr.none?{|v| v > 5}
-
-# p sample_arr.my_none?{|v| v > 5}
-
-# p sample_hash.none?{|k, v| v > 5}
-
-# p sample_hash.my_none?{|k, v| v > 5}
-
-# p sample_hash.none?{|k, v| v >= 5}
-
-# p sample_hash.my_none?{|k, v| v >= 5}
-
-# p sample_hash.none?{|k, v| k.length >= 5}
-
-# p sample_hash.my_none?{|k, v| k.length >= 5}
-
-# p sample_hash.none?{|k, v| k.length > 5}
-
-# p sample_hash.my_none?{|k, v| k.length > 5}
-
-# p sample_hash.none?{|k, v| k.length > v}
-
-# p sample_hash.my_none?{|k, v| k.length > v}
-
-# puts "Testing count"
-
-# p sample_arr.count{|v| v >= 4}
-
-# p sample_arr.my_count{|v| v >= 4}
-
-# p sample_hash.count{|k, v| v >= 2}
-
-# p sample_hash.my_count{|k, v| v >= 2}
-
-# p sample_hash.count{|k, v| k.length > 3}
-
-# p sample_hash.my_count{|k, v| k.length > 3}
-
-# p sample_hash.count{|k, v| k.length >= v}
-
-# p sample_hash.my_count{|k, v| k.length >= v}
-
-# puts "Testing my_map"
-
-# p sample_arr.map{|v| v*2}
-
-# p sample_arr.my_map{|v| v*2}
-
-# p sample_hash.map{|k, v| {k.to_s => v*1.5}}
-
-# p sample_hash.my_map{|k, v| {k.to_s => v*1.5}}
-
-# puts "Testing my_map with proc"
-
-# sample_array_proc = Proc.new{|v| v*2}
-
-# sample_hash_proc = Proc.new{|k, v| {k.to_s => v*2.5}}
-
-# p sample_arr.my_map(sample_array_proc)
-
-# p sample_hash.my_map(sample_hash_proc)
-
-# puts "Testing my_inject"
-
-# p sample_arr.inject{|a, b| a += b}
-
-# p ["a", "b", "c"].inject{|a, b| a += b}
-
-# p [[1], [3, 3], [2, 2, 2, 2]].inject{|a, b| a += b.length} TypeError
-
-# p [[1], [3, 3], [2, 2, 2, 2]].my_inject{|a, b| a += b.length} TypeError
-
-# p sample_arr.my_inject{|a, b| a += b}
-
-# p ["a", "b", "c"].my_inject{|a, b| a += b}
-
-# p sample_arr.inject(2){|a, b| a += b}
-
-# p ["a", "b", "c"].inject("z"){|a, b| a += b}
-
-# p [[1], [3, 3], [2, 2, 2, 2]].inject(0){|a, b| a += b.length}
-
-# p [[1], [3, 3], [2, 2, 2, 2]].my_inject(0){|a, b| a += b.length}
-
-# p [[1], [3, 3], [2, 2, 2, 2]].inject(2){|a, b| a += b.length}
-
-# p [[1], [3, 3], [2, 2, 2, 2]].my_inject(2){|a, b| a += b.length}
-
-# p sample_arr.my_inject(2){|a, b| a += b}
-
-# p ["a", "b", "c"].my_inject("z"){|a, b| a += b}
-
-# p sample_hash.inject(""){|a, (k, v)| a += k.to_s + v.to_s}
-
-# p sample_hash.my_inject(""){|a, (k, v)| a += k.to_s + v.to_s}
 
 # rubocop:enable Metrics/CyclomaticComplexity
 # rubocop:enable Metrics/PerceivedComplexity
