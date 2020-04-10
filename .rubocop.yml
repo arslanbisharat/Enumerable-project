@@ -1,0 +1,67 @@
+AllCops:
+  TargetRubyVersion: 2.4.2
+  EnabledByDefault : true
+  Exclude:
+    - "README.md"
+    - "Guardfile"
+    - "Rakefile"
+    - '*.cfg'
+    - '*.yml'
+    - 'Gemfile'
+
+  DisplayCopNames: true
+
+Layout/LineLength:
+  Max: 120
+Metrics/MethodLength:
+  Max: 100
+Metrics/AbcSize:
+  Max: 50
+Metrics/ClassLength:
+  Max: 150
+Metrics/BlockLength:
+  ExcludedMethods: ['describe']
+  Max: 30
+
+
+Style/Documentation:
+  Enabled: false
+Style/RedundantSelf:
+  Enabled: false
+Style/RedundantReturn:
+  Enabled: false
+Style/For:
+  Enabled: false
+Style/ParallelAssignment:
+  Enabled: false
+Layout/SpaceAroundOperators:
+  Enabled: false
+Style/Encoding:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/EachForSimpleLoop:
+  Enabled: false
+Style/AndOr:
+  Enabled: false
+Style/DefWithParentheses:
+  Enabled: false
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: never
+Style/Copyright:
+  Enabled : false
+Style/DocumentationMethod:
+  Enabled : false
+Style/MissingElse:
+  Enabled : false
+
+
+Layout/HashAlignment:
+  EnforcedColonStyle: key
+Layout/EmptyLines:
+  Enabled: false
+Layout/ExtraSpacing:
+  AllowForAlignment: false
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
